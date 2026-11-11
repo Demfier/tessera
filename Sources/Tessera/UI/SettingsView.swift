@@ -1,0 +1,210 @@
+import SwiftUI
+import TesseraCore
+
+/// Everything the Settings window needs, bundled so views take one dependency.
+@MainActor
+struct SettingsEnvironment {
+    let settings: Settings
+    let hotkeys: HotkeyCenter
+    let permissions: Permissions
+    let recorder: ShortcutRecorder
+    let launchAtLogin: LaunchAtLogin
+}
+
+struct SettingsView: View {
+    let environment: SettingsEnvironment
+
+    var body: some View {
+        TabView {
+            ShortcutsPane(settings: environment.settings, hotkeys: environment.hotkeys,
+                          recorder: environment.recorder)
+                .tabItem { Label("Shortcuts", systemImage: "keyboard") }
+            GeneralPane(settings: environment.settings, permissions: environment.permissions,
+                        launchAtLogin: environment.launchAtLogin)
+                .tabItem { Label("General", systemImage: "gearshape") }
+            AboutPane()
+                .tabItem { Label("About", systemImage: "info.circle") }
+        }
+        .frame(width: 580, height: 640)
+    }
+}
+
+// MARK: - Shortcuts
+
+private struct ShortcutsPane: View {
+    @ObservedObject var settings: Settings
+    @ObservedObject var hotkeys: HotkeyCenter
+    @ObservedObject var recorder: ShortcutRecorder
+
+    var body: some View {
+        Form {
+            if let message = recorder.message {
+                Section { Label(message, systemImage: "info.circle").foregroundStyle(.secondary) }
+            }
+            ForEach(Command.Group.allCases, id: \.self) { group in
+                Section(group.rawValue) {
+                    ForEach(Command.allCases.filter { $0.group == group }, id: \.self) { command in
+                        LabeledContent(command.title) {
+                            ShortcutField(command: command, shortcut: settings.bindings[command],
+                                          failed: hotkeys.failedCommands.contains(command),
+                                          recorder: recorder) { settings.setShortcut(nil, for: command) }
+                        }
+                    }
+                }
+            }
+            Section {
+                Button("Restore Defaults") {
+                    recorder.stop()
+                    settings.resetShortcutsToDefaults()
+                }
+            } footer: {
+                Text("Click a shortcut to record a new one. Esc cancels, ⌫ clears.")
+                    .font(.callout).foregroundStyle(.secondary)
+            }
+        }
+        .formStyle(.grouped)
+    }
+}
+
+private struct ShortcutField: View {
+    let command: Command
+    let shortcut: Shortcut?
+    let failed: Bool
+    @ObservedObject var recorder: ShortcutRecorder
+    let clear: () -> Void
+
+    private var isRecording: Bool { recorder.recording == command }
+
+    var body: some View {
+        HStack(spacing: 6) {
+            if failed && !isRecording {
+                Image(systemName: "exclamationmark.triangle.fill")
+                    .foregroundStyle(.orange)
+                    .help("Couldn't register this shortcut — another app is probably using it.")
+            }
+            Button { recorder.toggle(command) } label: {
+                Text(label)
+                    .foregroundStyle(isRecording || shortcut == nil ? .secondary : .primary)
+                    .frame(minWidth: 120)
+            }
+            .buttonStyle(.bordered)
+            .tint(isRecording ? .accentColor : nil)
+
+            Button(action: clear) { Image(systemName: "xmark.circle.fill") }
+                .buttonStyle(.borderless)
+                .foregroundStyle(.tertiary)
+                .help("Clear shortcut")
+                .opacity(shortcut != nil && !isRecording ? 1 : 0)
+                .disabled(shortcut == nil || isRecording)
+        }
+    }
+
+    private var label: String {
+        if isRecording {
+            let held = recorder.heldModifiers.symbols
+            return held.isEmpty ? "Type shortcut…" : held
+        }
+        return shortcut?.description ?? "Record Shortcut"
+    }
+}
+
+// MARK: - General
+
+private struct GeneralPane: View {
+    @ObservedObject var settings: Settings
+    @ObservedObject var permissions: Permissions
+    @ObservedObject var launchAtLogin: LaunchAtLogin
+
+    var body: some View {
+        Form {
+            Section {
+                LabeledContent("Accessibility access") {
+                    if permissions.isTrusted {
+                        Label("Granted", systemImage: "checkmark.circle.fill").foregroundStyle(.green)
+                    } else {
+                        Button("Grant Access…") { permissions.requestAccess() }
+                    }
+                }
+                Toggle("Open Tessera at login", isOn: Binding(get: { launchAtLogin.isEnabled },
+                                                              set: { launchAtLogin.set($0) }))
+                if let error = launchAtLogin.lastError {
+                    Text(error).font(.callout).foregroundStyle(.red)
+                }
+            } footer: {
+                if !permissions.isTrusted {
+                    Text("Moving windows and switching Spaces both need Accessibility access.")
+                        .font(.callout).foregroundStyle(.secondary)
+                }
+            }
+
+            Section("Window Layout") {
+                Picker("Pressing a layout shortcut again", selection: $settings.repeatBehavior) {
+                    ForEach(RepeatBehavior.allCases, id: \.self) { Text($0.title).tag($0) }
+                }
+                LabeledContent("Gap between windows") {
+                    HStack {
+                        Slider(value: $settings.gapSize, in: 0...40, step: 2).frame(width: 180)
+                        Text("\(Int(settings.gapSize)) pt").monospacedDigit().frame(width: 40, alignment: .trailing)
+                    }
+                }
+            }
+
+            Section {
+                Toggle("When no display is in that direction, cycle through displays",
+                       isOn: $settings.cycleDisplaysWhenNoNeighbour)
+                Toggle("Put windows back when a display reconnects", isOn: $settings.restoreWindowsOnReconnect)
+                Toggle("Move the pointer along when focusing another display", isOn: $settings.movePointerWithFocus)
+            } header: {
+                Text("Displays")
+            } footer: {
+                Text("Full-screen apps move too: Tessera takes the window out of full screen, moves it, and puts it back in full screen on the other display. Taking the pointer along when focusing a display means Space shortcuts then act on that display.")
+                    .font(.callout).foregroundStyle(.secondary)
+            }
+
+            Section {
+                Toggle("Make trackpad swipes between Spaces instant", isOn: $settings.instantTrackpadSwipes)
+                Toggle("Show the Space number when switching", isOn: $settings.showSpaceHUD)
+                Toggle("Show the current Space number in the menu bar", isOn: $settings.showSpaceNumberInMenuBar)
+            } header: {
+                Text("Spaces")
+            } footer: {
+                Text("Space shortcuts skip the sliding animation entirely; the switch is immediate and the pointer is usable right away.")
+                    .font(.callout).foregroundStyle(.secondary)
+            }
+        }
+        .formStyle(.grouped)
+    }
+}
+
+// MARK: - About
+
+private struct AboutPane: View {
+    private var version: String {
+        Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "dev"
+    }
+
+    var body: some View {
+        VStack(spacing: 14) {
+            Image(nsImage: NSApp.applicationIconImage)
+                .resizable()
+                .frame(width: 96, height: 96)
+            Text("Tessera").font(.title.weight(.semibold))
+            Text("Version \(version)").foregroundStyle(.secondary)
+            Text("Window snapping, instant Space switching, and moving windows — full-screen ones included — between displays.")
+                .multilineTextAlignment(.center)
+                .frame(maxWidth: 380)
+            Divider().frame(maxWidth: 380)
+            VStack(spacing: 6) {
+                Text("Credits").font(.headline)
+                Text("Instant Space switching engine from [InstantSpaceSwitcher](https://github.com/jurplel/InstantSpaceSwitcher) by jurplel (MIT).")
+                Text("Layouts and default shortcuts follow [Rectangle](https://rectangleapp.com).")
+                Text("Display moves follow [Second Display](https://seconddisplay.app)'s behaviour.")
+            }
+            .font(.callout)
+            .multilineTextAlignment(.center)
+            .frame(maxWidth: 420)
+        }
+        .padding(32)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+    }
+}

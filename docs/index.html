@@ -1,0 +1,152 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tessera for Mac</title>
+<meta name="description" content="A free macOS menu-bar app that snaps windows with the keyboard, switches Spaces without the slide animation, and moves full-screen apps between displays.">
+<meta property="og:title" content="Tessera for Mac">
+<meta property="og:description" content="Snap windows, switch Spaces instantly, and move full-screen apps between displays. One free menu-bar app.">
+<meta property="og:image" content="https://demfier.github.io/tessera/icon.png">
+<meta name="theme-color" content="#18214a">
+<link rel="icon" href="icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header class="masthead wrap">
+  <a class="brand" href="./"><img src="icon.png" alt="" width="32" height="32">Tessera</a>
+  <a class="masthead-link" href="https://github.com/Demfier/tessera">Source on GitHub</a>
+</header>
+
+<main>
+  <section class="intro wrap">
+    <h1>Every window, every display, every Space. From the keyboard.</h1>
+    <p class="lede">Tessera is a free menu-bar app for macOS. It snaps windows into place, switches Spaces without the sliding animation, and carries full-screen apps from one display to another. One small app instead of three.</p>
+
+    <div class="get">
+      <a class="download" href="https://github.com/Demfier/tessera/releases/latest/download/Tessera.zip">Download for Mac</a>
+      <div class="oneliner">
+        <code id="install-command">curl -fsSL https://demfier.github.io/tessera/install.sh | bash</code>
+        <button type="button" class="copy" data-copy="install-command">Copy</button>
+      </div>
+    </div>
+    <p class="fineprint">Version 1.0 for macOS 14 or later, Apple silicon and Intel. The install command skips macOS's first-launch warning; <a href="install.sh">read the script</a> before running it.</p>
+  </section>
+
+  <section class="desk" aria-labelledby="demo-title">
+    <div class="wrap">
+      <h2 id="demo-title" class="visually-hidden">Try the shortcuts</h2>
+      <div class="stage" id="stage" aria-hidden="true">
+        <div class="display" data-display="0"><div class="menubar"></div></div>
+        <div class="display" data-display="1"><div class="menubar"></div></div>
+        <div class="spaces" data-display="0"></div>
+        <div class="spaces" data-display="1"></div>
+        <svg class="pointer" id="pointer" viewBox="0 0 12 18" width="14" height="21"><path d="M1 1v14l3.6-3.4L7 17l2.4-1-2.3-5.2H12z"/></svg>
+      </div>
+
+      <div class="controls" role="group" aria-label="Shortcuts to try">
+        <button type="button" data-action="leftHalf"><span class="keys"><kbd>⌃</kbd><kbd>⌥</kbd><kbd>←</kbd></span>Left half</button>
+        <button type="button" data-action="rightHalf"><span class="keys"><kbd>⌃</kbd><kbd>⌥</kbd><kbd>→</kbd></span>Right half</button>
+        <button type="button" data-action="maximize"><span class="keys"><kbd>⌃</kbd><kbd>⌥</kbd><kbd>↩</kbd></span>Maximize</button>
+        <button type="button" data-action="fullscreen"><span class="keys"><kbd class="dot" aria-label="Green button"></kbd></span>Full screen</button>
+        <button type="button" data-action="moveDisplay"><span class="keys"><kbd>⌃</kbd><kbd>⌥</kbd><kbd>⌘</kbd><kbd>→</kbd></span>Move to other display</button>
+        <button type="button" data-action="focusDisplay"><span class="keys"><kbd>⌃</kbd><kbd>⌥</kbd><kbd>⇧</kbd><kbd>⌘</kbd><kbd>→</kbd></span>Focus other display</button>
+        <button type="button" data-action="nextSpace"><span class="keys"><kbd>⌃</kbd><kbd>⌥</kbd><kbd>⇧</kbd><kbd>→</kbd></span>Next Space</button>
+      </div>
+      <p class="caption" id="caption" aria-live="polite">Press a shortcut, or click one above.</p>
+    </div>
+  </section>
+
+  <section class="replaces wrap" aria-labelledby="replaces-title">
+    <h2 id="replaces-title">One app instead of three</h2>
+    <div class="columns">
+      <div>
+        <h3>Instead of Rectangle</h3>
+        <p>Halves, corners, thirds, fourths and sixths, maximize, center, grow and shrink, and restore. Press a half again and the window walks onto the next display.</p>
+      </div>
+      <div>
+        <h3>Instead of InstantSpaceSwitcher</h3>
+        <p>Switch Spaces with no slide, so the pointer is usable the moment you let go. Jump straight to Space 1 to 10, or back to the last one. Three-finger swipes can be instant too.</p>
+      </div>
+      <div>
+        <h3>Instead of Second Display Pro</h3>
+        <p>Send a window to the display on that side, even a full-screen one: Tessera leaves full screen, moves it, and goes full screen again. Windows go back where they were when a display reconnects.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="shortcuts wrap" aria-labelledby="shortcuts-title">
+    <h2 id="shortcuts-title">Default shortcuts</h2>
+    <p class="section-note">Change any of them in Settings, where more actions (fourths, sixths, next display and others) wait to be bound.</p>
+    <div class="shortcut-groups">
+      <div class="group">
+        <h3>Windows</h3>
+        <dl>
+        <div><dt>Left, right, top, bottom half</dt><dd><kbd>⌃</kbd><kbd>⌥</kbd><kbd>←</kbd><kbd>→</kbd><kbd>↑</kbd><kbd>↓</kbd></dd></div>
+        <div><dt>Corners</dt><dd><kbd>⌃</kbd><kbd>⌥</kbd><kbd>U</kbd><kbd>I</kbd><kbd>J</kbd><kbd>K</kbd></dd></div>
+        <div><dt>First, center, last third</dt><dd><kbd>⌃</kbd><kbd>⌥</kbd><kbd>D</kbd><kbd>F</kbd><kbd>G</kbd></dd></div>
+        <div><dt>First, last two thirds</dt><dd><kbd>⌃</kbd><kbd>⌥</kbd><kbd>E</kbd><kbd>T</kbd></dd></div>
+        <div><dt>Maximize</dt><dd><kbd>⌃</kbd><kbd>⌥</kbd><kbd>↩</kbd></dd></div>
+        <div><dt>Maximize height</dt><dd><kbd>⌃</kbd><kbd>⌥</kbd><kbd>⇧</kbd><kbd>↑</kbd></dd></div>
+        <div><dt>Center</dt><dd><kbd>⌃</kbd><kbd>⌥</kbd><kbd>C</kbd></dd></div>
+        <div><dt>Larger, smaller</dt><dd><kbd>⌃</kbd><kbd>⌥</kbd><kbd>=</kbd><kbd>-</kbd></dd></div>
+        <div><dt>Restore</dt><dd><kbd>⌃</kbd><kbd>⌥</kbd><kbd>⌫</kbd></dd></div>
+        </dl>
+      </div>
+      <div class="group">
+        <h3>Displays</h3>
+        <dl>
+        <div><dt>Move window to the display on that side</dt><dd><kbd>⌃</kbd><kbd>⌥</kbd><kbd>⌘</kbd><kbd>←</kbd><kbd>→</kbd><kbd>↑</kbd><kbd>↓</kbd></dd></div>
+        <div><dt>Focus the display on that side</dt><dd><kbd>⌃</kbd><kbd>⌥</kbd><kbd>⇧</kbd><kbd>⌘</kbd><kbd>←</kbd><kbd>→</kbd><kbd>↑</kbd><kbd>↓</kbd></dd></div>
+        </dl>
+        <h3>Spaces</h3>
+        <dl>
+        <div><dt>Space on the left, right</dt><dd><kbd>⌃</kbd><kbd>⌥</kbd><kbd>⇧</kbd><kbd>←</kbd><kbd>→</kbd></dd></div>
+        <div><dt>Space 1 to 10</dt><dd><kbd>⌃</kbd><kbd>⌥</kbd><kbd>⌘</kbd><kbd>1</kbd>…<kbd>0</kbd></dd></div>
+        <div><dt>Last used Space</dt><dd><kbd>⌃</kbd><kbd>⌥</kbd><kbd>⌘</kbd><kbd>keypad +</kbd></dd></div>
+        </dl>
+      </div>
+    </div>
+  </section>
+
+  <section class="install wrap" aria-labelledby="install-title">
+    <h2 id="install-title">Installing</h2>
+    <p class="section-note">The install command above does steps 1 and 2 for you. To install by hand:</p>
+    <ol class="steps">
+      <li>
+        <h3>Download and move it to Applications</h3>
+        <p><a href="https://github.com/Demfier/tessera/releases/latest/download/Tessera.zip">Download Tessera.zip</a>, open it, and drag Tessera into your Applications folder.</p>
+      </li>
+      <li>
+        <h3>Open it once from System Settings</h3>
+        <p>Tessera isn't notarized by Apple (that takes a paid developer account), so the first time you open it macOS says it can't check it. Click <b>Done</b>, then go to System Settings › Privacy &amp; Security, scroll down to “Tessera was blocked”, and click <b>Open Anyway</b>. macOS only asks once.</p>
+      </li>
+      <li>
+        <h3>Allow Accessibility access</h3>
+        <p>Tessera opens its settings and asks for Accessibility access, which is what lets it move other apps' windows. Turn Tessera on in System Settings › Privacy &amp; Security › Accessibility. Updates keep this permission.</p>
+      </li>
+    </ol>
+    <p class="section-note">Tessera lives in the menu bar and starts at login. If you use Rectangle or InstantSpaceSwitcher, quit them so the shortcuts don't collide.</p>
+  </section>
+
+  <section class="source wrap" aria-labelledby="source-title">
+    <h2 id="source-title">Building it yourself</h2>
+    <p class="section-note">You need Xcode and macOS 14 or later.</p>
+<pre><code>git clone https://github.com/Demfier/tessera.git
+cd tessera
+scripts/build.sh --install</code></pre>
+  </section>
+</main>
+
+<footer class="wrap">
+  <p>Tessera is free and open source under the MIT license. Instant Space switching uses the engine from <a href="https://github.com/jurplel/InstantSpaceSwitcher">InstantSpaceSwitcher</a> by jurplel. Layouts and default shortcuts follow <a href="https://rectangleapp.com">Rectangle</a>.</p>
+  <p><a href="https://github.com/Demfier/tessera">Source</a> <a href="https://github.com/Demfier/tessera/releases">Releases</a> <a href="https://github.com/Demfier/tessera/issues">Report a problem</a></p>
+</footer>
+
+<script src="demo.js"></script>
+</body>
+</html>
