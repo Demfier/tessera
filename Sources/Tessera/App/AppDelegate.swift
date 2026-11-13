@@ -10,12 +10,13 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private let spaces = SpaceController()
     private let restorer = DisplayReconnectRestorer()
     private let launchAtLogin = LaunchAtLogin()
+    private lazy var updater = Updater(settings: settings)
     private lazy var router = CommandRouter(windows: WindowController(settings: settings), spaces: spaces,
                                             focus: DisplayFocusController(settings: settings))
     private lazy var recorder = ShortcutRecorder(settings: settings, hotkeys: hotkeys)
     private lazy var settingsWindow = SettingsWindowController(environment: SettingsEnvironment(
         settings: settings, hotkeys: hotkeys, permissions: permissions, recorder: recorder,
-        launchAtLogin: launchAtLogin
+        launchAtLogin: launchAtLogin, updater: updater
     ))
     private var statusMenu: StatusMenuController?
     private var cancellables = Set<AnyCancellable>()
@@ -43,13 +44,14 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         bindSettings()
 
         statusMenu = StatusMenuController(
-            settings: settings, spaces: spaces, permissions: permissions,
+            settings: settings, spaces: spaces, permissions: permissions, updater: updater,
             actions: .init(perform: { [weak self] in self?.perform($0) },
                            openSettings: { [weak self] in self?.settingsWindow.show() },
                            requestAccessibility: { [weak self] in self?.permissions.requestAccess() })
         )
 
         restorer.start()
+        updater.start()
         permissions.whenTrusted { [weak self] in self?.spaces.start() }
         if !permissions.isTrusted {
             settingsWindow.show()

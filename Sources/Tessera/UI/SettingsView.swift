@@ -9,6 +9,7 @@ struct SettingsEnvironment {
     let permissions: Permissions
     let recorder: ShortcutRecorder
     let launchAtLogin: LaunchAtLogin
+    let updater: Updater
 }
 
 struct SettingsView: View {
@@ -20,7 +21,7 @@ struct SettingsView: View {
                           recorder: environment.recorder)
                 .tabItem { Label("Shortcuts", systemImage: "keyboard") }
             GeneralPane(settings: environment.settings, permissions: environment.permissions,
-                        launchAtLogin: environment.launchAtLogin)
+                        launchAtLogin: environment.launchAtLogin, updater: environment.updater)
                 .tabItem { Label("General", systemImage: "gearshape") }
             AboutPane()
                 .tabItem { Label("About", systemImage: "info.circle") }
@@ -114,6 +115,7 @@ private struct GeneralPane: View {
     @ObservedObject var settings: Settings
     @ObservedObject var permissions: Permissions
     @ObservedObject var launchAtLogin: LaunchAtLogin
+    @ObservedObject var updater: Updater
 
     var body: some View {
         Form {
@@ -171,8 +173,68 @@ private struct GeneralPane: View {
                 Text("Space shortcuts switch without the slide animation.")
                     .font(.callout).foregroundStyle(.secondary)
             }
+
+            Section {
+                Toggle("Check for updates automatically", isOn: $settings.automaticallyCheckForUpdates)
+                Toggle("Install updates automatically", isOn: $settings.automaticallyInstallUpdates)
+                    .disabled(!settings.automaticallyCheckForUpdates)
+                UpdateStatusRow(updater: updater)
+            } header: {
+                Text("Updates")
+            } footer: {
+                Text("Tessera checks GitHub for a new release once a day. With automatic installs on, it installs the release once you haven't used the keyboard or mouse for two minutes, then restarts, which takes about a second.")
+                    .font(.callout).foregroundStyle(.secondary)
+            }
         }
         .formStyle(.grouped)
+    }
+}
+
+private struct UpdateStatusRow: View {
+    @ObservedObject var updater: Updater
+
+    var body: some View {
+        LabeledContent {
+            switch updater.state {
+            case .checking, .installing:
+                ProgressView().controlSize(.small)
+            case .available(let update):
+                HStack {
+                    Button("Release Notes") { NSWorkspace.shared.open(update.releaseNotesURL) }
+                    Button("Install and Restart") { updater.install(update) }
+                }
+            case .installFailed:
+                Button("Check Again") { Task { await updater.check() } }
+            default:
+                Button("Check Now") { Task { await updater.check() } }
+            }
+        } label: {
+            Text(title)
+            if let detail { Text(detail) }
+        }
+    }
+
+    private var title: String {
+        switch updater.state {
+        case .checking: "Checking for updates…"
+        case .available(let update): "Version \(update.version) is available"
+        case .installing(let version): "Installing version \(version)…"
+        case .checkFailed: "Couldn't check for updates"
+        case .installFailed(let version, _): "Couldn't install version \(version)"
+        case .idle, .upToDate: "Version \(updater.currentVersion)"
+        }
+    }
+
+    private var detail: String? {
+        switch updater.state {
+        case .checkFailed(let message), .installFailed(_, let message):
+            return message
+        case .available:
+            return "You have version \(updater.currentVersion)."
+        default:
+            guard let checked = updater.lastChecked else { return "Not checked yet" }
+            return "Last checked \(checked.formatted(.relative(presentation: .named)))"
+        }
     }
 }
 

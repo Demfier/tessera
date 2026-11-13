@@ -1,8 +1,9 @@
 import AppKit
 import TesseraCore
 
-/// `Tessera --perform <command>` runs one action and exits — handy for scripts, launchers and
-/// testing. Unknown arguments fall through so normal launches (which may carry system flags) work.
+/// `Tessera --perform <command>` runs one action and exits, for scripts and launchers. `--update`
+/// installs the latest release. Unknown arguments fall through so normal launches (which may carry
+/// system flags) work.
 @MainActor
 enum CommandLineInterface {
     static func runIfRequested(_ arguments: [String]) {
@@ -27,16 +28,63 @@ enum CommandLineInterface {
                 exit(64)
             }
             perform(command)
+        case "--update":
+            update()
         default:
             return
         }
     }
 
     private static let usage = """
-        Usage: Tessera [--perform <command> | --list | --help]
+        Usage: Tessera [--perform <command> | --list | --update | --help]
           --perform <command>  Run one action on the focused window (or switch Spaces) and exit.
           --list               List every command name.
+          --update             Install the latest release over this copy of Tessera, restarting
+                               it if it's running.
         """
+
+    private static func update() -> Never {
+        Task {
+            let current = UpdateInstaller.currentVersion
+            do {
+                let release = try await UpdateInstaller.fetchLatestRelease()
+                guard let update = UpdatePolicy.update(from: release, current: current) else {
+                    say("Tessera \(current) is up to date.")
+                    exit(0)
+                }
+                let target = Bundle.main.bundleURL
+                say("Installing Tessera \(update.version) over \(current)…")
+                try await UpdateInstaller.install(update, over: target)
+                try await restartCopies(of: target)
+                say("Installed Tessera \(update.version).")
+                exit(0)
+            } catch {
+                FileHandle.standardError.write(Data("Update failed: \(error.localizedDescription)\n".utf8))
+                exit(1)
+            }
+        }
+        dispatchMain()
+    }
+
+    /// Unbuffered, so it can't come out after an error written to stderr.
+    private static func say(_ line: String) {
+        FileHandle.standardOutput.write(Data("\(line)\n".utf8))
+    }
+
+    /// Quits any running menu-bar copy started from `app` and opens the new version in its place.
+    private static func restartCopies(of app: URL) async throws {
+        let running = NSRunningApplication.runningApplications(withBundleIdentifier: Bundle.main.bundleIdentifier ?? "")
+            .filter { $0 != .current && $0.bundleURL?.standardizedFileURL == app.standardizedFileURL }
+        guard !running.isEmpty else { return }
+        for copy in running { copy.terminate() }
+        let deadline = Date().addingTimeInterval(5)
+        while running.contains(where: { kill($0.processIdentifier, 0) == 0 }), Date() < deadline {
+            try await Task.sleep(for: .milliseconds(100))
+        }
+        for copy in running where kill(copy.processIdentifier, 0) == 0 { copy.forceTerminate() }
+        try await Task.sleep(for: .milliseconds(300))
+        NSWorkspace.shared.open(app)
+    }
 
     private static func perform(_ command: Command) -> Never {
         guard AXIsProcessTrusted() else {

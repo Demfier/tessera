@@ -16,13 +16,16 @@ final class StatusMenuController: NSObject, NSMenuDelegate {
     private let spaces: SpaceController
     private let permissions: Permissions
     private let actions: Actions
+    private let updater: Updater
     private var cancellables = Set<AnyCancellable>()
 
     /// Groups shown inline at the top level; the rest get a submenu each.
     private static let inlineGroups: [Command.Group] = [.halves, .displays]
 
-    init(settings: Settings, spaces: SpaceController, permissions: Permissions, actions: Actions) {
+    init(settings: Settings, spaces: SpaceController, permissions: Permissions, updater: Updater,
+         actions: Actions) {
         self.settings = settings
+        self.updater = updater
         self.spaces = spaces
         self.permissions = permissions
         self.actions = actions
@@ -118,6 +121,16 @@ final class StatusMenuController: NSObject, NSMenuDelegate {
         menu.addItem(spacesItem())
         menu.addItem(.separator())
 
+        if case .available(let update) = updater.state {
+            let install = item("Install Tessera \(update.version) and Restart", action: #selector(installUpdate))
+            menu.addItem(install)
+        } else if case .installing(let version) = updater.state {
+            let installing = NSMenuItem(title: "Installing Tessera \(version)…", action: nil, keyEquivalent: "")
+            installing.isEnabled = false
+            menu.addItem(installing)
+        } else {
+            menu.addItem(item("Check for Updates…", action: #selector(checkForUpdates)))
+        }
         let settingsItem = item("Settings…", action: #selector(openSettings))
         settingsItem.keyEquivalent = ","
         menu.addItem(settingsItem)
@@ -164,5 +177,9 @@ final class StatusMenuController: NSObject, NSMenuDelegate {
     }
 
     @objc private func openSettings() { actions.openSettings() }
+    @objc private func checkForUpdates() { updater.checkAndReport() }
+    @objc private func installUpdate() {
+        if case .available(let update) = updater.state { updater.install(update) }
+    }
     @objc private func requestAccessibility() { actions.requestAccessibility() }
 }

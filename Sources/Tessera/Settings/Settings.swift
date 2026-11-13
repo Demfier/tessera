@@ -15,6 +15,8 @@ final class Settings: ObservableObject {
         static let instantTrackpadSwipes = "instantTrackpadSwipes"
         static let showSpaceHUD = "showSpaceHUD"
         static let showSpaceNumberInMenuBar = "showSpaceNumberInMenuBar"
+        static let automaticallyCheckForUpdates = "automaticallyCheckForUpdates"
+        static let automaticallyInstallUpdates = "automaticallyInstallUpdates"
         static let didCompleteFirstLaunch = "didCompleteFirstLaunch"
     }
 
@@ -54,6 +56,14 @@ final class Settings: ObservableObject {
     @Published var showSpaceNumberInMenuBar: Bool {
         didSet { defaults.set(showSpaceNumberInMenuBar, forKey: Key.showSpaceNumberInMenuBar) }
     }
+    /// Look for a new GitHub release once a day.
+    @Published var automaticallyCheckForUpdates: Bool {
+        didSet { defaults.set(automaticallyCheckForUpdates, forKey: Key.automaticallyCheckForUpdates) }
+    }
+    /// Install a new release without asking, once the keyboard and mouse have been idle for a while.
+    @Published var automaticallyInstallUpdates: Bool {
+        didSet { defaults.set(automaticallyInstallUpdates, forKey: Key.automaticallyInstallUpdates) }
+    }
 
     init(defaults: UserDefaults = .standard) {
         self.defaults = defaults
@@ -66,6 +76,8 @@ final class Settings: ObservableObject {
         instantTrackpadSwipes = defaults.bool(forKey: Key.instantTrackpadSwipes)
         showSpaceHUD = defaults.bool(forKey: Key.showSpaceHUD)
         showSpaceNumberInMenuBar = defaults.object(forKey: Key.showSpaceNumberInMenuBar) as? Bool ?? true
+        automaticallyCheckForUpdates = defaults.object(forKey: Key.automaticallyCheckForUpdates) as? Bool ?? true
+        automaticallyInstallUpdates = defaults.object(forKey: Key.automaticallyInstallUpdates) as? Bool ?? true
     }
 
     func completeFirstLaunch() {

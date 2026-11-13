@@ -26,6 +26,9 @@ Requires macOS 14 or later, on Apple silicon or Intel.
 - Move keyboard focus to another display. Tessera activates the front window on that display and moves
   the pointer there, so Space shortcuts act on that display next.
 - When a display disconnects and comes back, windows that were on it move back.
+- Tessera updates itself from this repository's releases. It checks once a day, and by default
+  installs a new release once the keyboard and mouse have been idle for two minutes, then restarts.
+  Both can be turned off in Settings › General, and the menu has a Check for Updates item.
 
 ## Default shortcuts
 
@@ -98,16 +101,18 @@ gh release create v1.1 build/Tessera.zip --title "Tessera 1.1" --notes "..."
 
 Before building, update `CFBundleShortVersionString` and `CFBundleVersion` in `Resources/Info.plist`. Sign every release with
 the same certificate: `docs/install.sh` checks for that certificate's hash, and users keep their
-Accessibility permission across updates only if the signature stays the same.
+Accessibility permission across updates only if the signature stays the same. Installed copies pick up
+a new release within a day.
 
 ## Command line
 
 `Tessera --perform <command>` runs one action on the focused window and exits. `--list` prints every
-command name.
+command name. `--update` installs the latest release and restarts Tessera if it's running.
 
 ```sh
 /Applications/Tessera.app/Contents/MacOS/Tessera --perform leftHalf
 /Applications/Tessera.app/Contents/MacOS/Tessera --list
+/Applications/Tessera.app/Contents/MacOS/Tessera --update
 ```
 
 ## How it works
@@ -126,6 +131,9 @@ command name.
 - Focusing a particular window on another display uses private SkyLight functions, as yabai and
   AltTab do. If those functions are missing, Tessera falls back to the Accessibility API.
 - Shortcuts are registered with Carbon's `RegisterEventHotKey`, which needs no permission.
+- Updates read the latest release from the GitHub API and download its `Tessera.zip`. Tessera installs
+  the new app only if it meets the running app's designated code requirement (same bundle ID, signed
+  with the same certificate), then swaps it in place and restarts.
 
 ## Project layout
 
