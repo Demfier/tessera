@@ -96,7 +96,7 @@ scripts/build.sh --release         # universal build, signed and zipped to build
 gh release create v1.1 build/Tessera.zip --title "Tessera 1.1" --notes "..."
 ```
 
-Update `CFBundleShortVersionString` in `Resources/Info.plist` before building. Sign every release with
+Before building, update `CFBundleShortVersionString` and `CFBundleVersion` in `Resources/Info.plist`. Sign every release with
 the same certificate: `docs/install.sh` checks for that certificate's hash, and users keep their
 Accessibility permission across updates only if the signature stays the same.
 
