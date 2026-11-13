@@ -80,7 +80,7 @@ private struct ShortcutField: View {
             if failed && !isRecording {
                 Image(systemName: "exclamationmark.triangle.fill")
                     .foregroundStyle(.orange)
-                    .help("Couldn't register this shortcut — another app is probably using it.")
+                    .help("Couldn't register this shortcut. Another app is probably using it.")
             }
             Button { recorder.toggle(command) } label: {
                 Text(label)
@@ -157,7 +157,7 @@ private struct GeneralPane: View {
             } header: {
                 Text("Displays")
             } footer: {
-                Text("Full-screen apps move too: Tessera takes the window out of full screen, moves it, and puts it back in full screen on the other display. Taking the pointer along when focusing a display means Space shortcuts then act on that display.")
+                Text("Moving a full-screen window takes it out of full screen, moves it, and puts it back in full screen on the other display. Space shortcuts act on the display under the pointer, so moving the pointer when you focus a display makes them act on that display.")
                     .font(.callout).foregroundStyle(.secondary)
             }
 
@@ -168,7 +168,7 @@ private struct GeneralPane: View {
             } header: {
                 Text("Spaces")
             } footer: {
-                Text("Space shortcuts skip the sliding animation entirely; the switch is immediate and the pointer is usable right away.")
+                Text("Space shortcuts switch without the slide animation.")
                     .font(.callout).foregroundStyle(.secondary)
             }
         }
@@ -190,13 +190,13 @@ private struct AboutPane: View {
                 .frame(width: 96, height: 96)
             Text("Tessera").font(.title.weight(.semibold))
             Text("Version \(version)").foregroundStyle(.secondary)
-            Text("Window snapping, instant Space switching, and moving windows — full-screen ones included — between displays.")
+            Text("Window snapping, Space switching without animation, and moving windows between displays, including full-screen windows.")
                 .multilineTextAlignment(.center)
                 .frame(maxWidth: 380)
             Divider().frame(maxWidth: 380)
             VStack(spacing: 6) {
                 Text("Credits").font(.headline)
-                Text("Instant Space switching engine from [InstantSpaceSwitcher](https://github.com/jurplel/InstantSpaceSwitcher) by jurplel (MIT).")
+                Text("Space switching engine from [InstantSpaceSwitcher](https://github.com/jurplel/InstantSpaceSwitcher) by jurplel (MIT).")
                 Text("Layouts and default shortcuts follow [Rectangle](https://rectangleapp.com).")
                 Text("Display moves follow [Second Display](https://seconddisplay.app)'s behaviour.")
             }

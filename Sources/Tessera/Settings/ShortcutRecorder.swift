@@ -65,7 +65,7 @@ final class ShortcutRecorder: ObservableObject {
         default:
             let shortcut = Shortcut(modifiers, event.keyCode)
             guard shortcut.isUsableAsGlobalHotkey else {
-                message = "Include ⌃ or ⌘ — with only ⇧ or ⌥ the shortcut would block normal typing."
+                message = "Include ⌃ or ⌘. A shortcut with only ⇧ or ⌥ would block normal typing."
                 NSSound.beep()
                 return true
             }

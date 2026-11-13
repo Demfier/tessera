@@ -96,17 +96,17 @@
   }
 
   const actions = {
-    leftHalf: { text: "Left half.", run: () => snap([0, 0.5, 0, 1]) },
-    rightHalf: { text: "Right half.", run: () => snap([0.5, 1, 0, 1]) },
-    maximize: { text: "Maximized.", run: () => snap([0, 1, 0, 1]) },
+    leftHalf: { text: "Window moved to the left half.", run: () => snap([0, 0.5, 0, 1]) },
+    rightHalf: { text: "Window moved to the right half.", run: () => snap([0.5, 1, 0, 1]) },
+    maximize: { text: "Window maximized.", run: () => snap([0, 1, 0, 1]) },
     fullscreen: {
-      text: () => (focused.full ? "Full screen." : "Out of full screen."),
+      text: () => (focused.full ? "Window entered full screen." : "Window left full screen."),
       run: () => { focused.full = !focused.full; render(); },
     },
     moveDisplay: {
       text: (wasFull) => wasFull
-        ? "Carried to the other display and back into full screen."
-        : "Moved to the other display, keeping its layout.",
+        ? "Window left full screen, moved to the other display, and entered full screen again."
+        : "Window moved to the other display with the same layout.",
       run: async () => {
         const target = 1 - focused.display;
         const wasFull = focused.full;
@@ -120,7 +120,7 @@
       },
     },
     focusDisplay: {
-      text: (found) => found ? "Focus and pointer moved to the other display." : "Pointer moved to the other display; it has no windows.",
+      text: (found) => found ? "Focus and pointer moved to the front window on the other display." : "Pointer moved to the other display. It has no windows to focus.",
       needsWindow: false,
       run: () => {
         const target = 1 - (focused ? focused.display : pointerDisplay);
@@ -133,7 +133,7 @@
       },
     },
     nextSpace: {
-      text: "Switched Space instantly, with no slide.",
+      text: "Switched to the next Space on the display under the pointer, without animation.",
       needsWindow: false,
       run: async () => {
         const d = displays[pointerDisplay];
@@ -153,7 +153,7 @@
     const action = actions[name];
     if (!action || busy) return;
     if (action.needsWindow !== false && !focused) {
-      caption.textContent = "No window is focused. Try Focus other display.";
+      caption.textContent = "No window is focused. Use Focus other display first.";
       return;
     }
     const button = buttons.get(name);
@@ -170,7 +170,7 @@
     }
   }
 
-  // One guided run-through when the model first comes into view; any input of yours stops it.
+  // Plays the shortcuts once when the model first comes into view. Any click or key press stops it.
   let autoplay = !reducedMotion;
   const script = ["leftHalf", "moveDisplay", "fullscreen", "moveDisplay", "focusDisplay", "nextSpace", "nextSpace"];
   async function runScript() {
@@ -180,13 +180,13 @@
       await perform(step);
       await wait(1500);
     }
-    if (autoplay) caption.textContent = "Your turn: press a shortcut, or click one above.";
+    if (autoplay) caption.textContent = "Click a shortcut, or press it on your keyboard.";
   }
   const stopAutoplay = () => { autoplay = false; };
 
   buttons.forEach((button, name) => button.addEventListener("click", () => { stopAutoplay(); perform(name); }));
 
-  // The real shortcuts work too (unless a window manager on your Mac catches them first).
+  // The real shortcuts work too, unless a window manager on the Mac handles them first.
   document.addEventListener("keydown", (e) => {
     if (!e.ctrlKey || !e.altKey) return;
     let name = null;

@@ -82,7 +82,7 @@ final class StatusMenuController: NSObject, NSMenuDelegate {
             return true
         }
         image.isTemplate = true
-        image.accessibilityDescription = spaceNumber.map { "Tessera — Space \($0)" } ?? "Tessera"
+        image.accessibilityDescription = spaceNumber.map { "Tessera, Space \($0)" } ?? "Tessera"
         return image
     }
 
