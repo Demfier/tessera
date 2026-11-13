@@ -234,4 +234,16 @@
       setTimeout(() => { button.textContent = "Copy"; }, 1800);
     });
   });
+
+  // Show the repository's star count next to the Star button. The button works without it.
+  const starCount = document.getElementById("star-count");
+  fetch("https://api.github.com/repos/Demfier/tessera")
+    .then((response) => (response.ok ? response.json() : Promise.reject(response.status)))
+    .then(({ stargazers_count: stars }) => {
+      if (typeof stars !== "number" || stars === 0) return;
+      starCount.textContent = stars.toLocaleString("en");
+      starCount.hidden = false;
+      starCount.closest("a").setAttribute("aria-label", `Star on GitHub, ${stars} ${stars === 1 ? "star" : "stars"}`);
+    })
+    .catch(() => {});
 })();

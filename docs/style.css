@@ -90,7 +90,22 @@ kbd {
   display: inline-flex; align-items: center; gap: 10px;
   color: var(--ink); text-decoration: none; font-weight: 700; font-size: 1.125rem; letter-spacing: -0.01em;
 }
-.masthead-link { color: var(--ink-soft); font-weight: 500; }
+.star {
+  display: inline-flex; align-items: center; gap: 8px;
+  min-height: 38px; padding: 0 0 0 12px;
+  color: var(--ink); background: var(--surface);
+  border: 1px solid var(--line); border-radius: 10px;
+  font-size: 0.9375rem; font-weight: 600; text-decoration: none;
+}
+.star:hover { background: var(--paper); }
+.star svg { fill: var(--amber); stroke: var(--ink); stroke-width: 0.8; }
+.star-label { padding-right: 8px; }
+.star-count {
+  margin-right: 4px; padding: 2px 8px;
+  background: var(--paper); border-radius: 6px;
+  color: var(--ink-soft); font-variant-numeric: tabular-nums;
+}
+.star-count[hidden] { display: none; }
 
 /* Intro */
 .intro { padding-block: clamp(32px, 6vw, 64px) 40px; }
